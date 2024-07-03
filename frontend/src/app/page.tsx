@@ -66,7 +66,7 @@ export default function Home() {
           >
             By{" "}
             <Image
-              src=""
+              src="next.svg"
               alt="Vercel Logo"
               className="dark:invert"
               width={100}
