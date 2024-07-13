@@ -590,6 +590,53 @@ export interface PluginContentReleasesReleaseAction
   };
 }
 
+export interface PluginI18NLocale extends Schema.CollectionType {
+  collectionName: 'i18n_locale';
+  info: {
+    singularName: 'locale';
+    pluralName: 'locales';
+    collectionName: 'locales';
+    displayName: 'Locale';
+    description: '';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  pluginOptions: {
+    'content-manager': {
+      visible: false;
+    };
+    'content-type-builder': {
+      visible: false;
+    };
+  };
+  attributes: {
+    name: Attribute.String &
+      Attribute.SetMinMax<
+        {
+          min: 1;
+          max: 50;
+        },
+        number
+      >;
+    code: Attribute.String & Attribute.Unique;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'plugin::i18n.locale',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'plugin::i18n.locale',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
 export interface PluginUsersPermissionsPermission
   extends Schema.CollectionType {
   collectionName: 'up_permissions';
@@ -741,49 +788,172 @@ export interface PluginUsersPermissionsUser extends Schema.CollectionType {
   };
 }
 
-export interface PluginI18NLocale extends Schema.CollectionType {
-  collectionName: 'i18n_locale';
+export interface ApiAlbumAlbum extends Schema.CollectionType {
+  collectionName: 'albums';
   info: {
-    singularName: 'locale';
-    pluralName: 'locales';
-    collectionName: 'locales';
-    displayName: 'Locale';
+    singularName: 'album';
+    pluralName: 'albums';
+    displayName: 'Album';
     description: '';
   };
   options: {
-    draftAndPublish: false;
-  };
-  pluginOptions: {
-    'content-manager': {
-      visible: false;
-    };
-    'content-type-builder': {
-      visible: false;
-    };
+    draftAndPublish: true;
   };
   attributes: {
-    name: Attribute.String &
-      Attribute.SetMinMax<
-        {
-          min: 1;
-          max: 50;
-        },
-        number
-      >;
-    code: Attribute.String & Attribute.Unique;
+    Name: Attribute.String;
+    Cover: Attribute.Media<'images' | 'files' | 'videos' | 'audios'>;
+    songs: Attribute.Relation<
+      'api::album.album',
+      'oneToMany',
+      'api::song.song'
+    >;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<
-      'plugin::i18n.locale',
+      'api::album.album',
       'oneToOne',
       'admin::user'
     > &
       Attribute.Private;
     updatedBy: Attribute.Relation<
-      'plugin::i18n.locale',
+      'api::album.album',
       'oneToOne',
       'admin::user'
     > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiAuthorAuthor extends Schema.CollectionType {
+  collectionName: 'authors';
+  info: {
+    singularName: 'author';
+    pluralName: 'authors';
+    displayName: 'Author';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    Description: Attribute.Text;
+    Image: Attribute.Media<'images' | 'files' | 'videos' | 'audios'>;
+    songs: Attribute.Relation<
+      'api::author.author',
+      'oneToMany',
+      'api::song.song'
+    >;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::author.author',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::author.author',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiChartChart extends Schema.SingleType {
+  collectionName: 'charts';
+  info: {
+    singularName: 'chart';
+    pluralName: 'charts';
+    displayName: 'Chart';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    songs: Attribute.Relation<
+      'api::chart.chart',
+      'oneToMany',
+      'api::song.song'
+    >;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::chart.chart',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::chart.chart',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiNameName extends Schema.CollectionType {
+  collectionName: 'names';
+  info: {
+    singularName: 'name';
+    pluralName: 'names';
+    displayName: 'Genre';
+    description: '';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    Name: Attribute.String;
+    Cover: Attribute.Media<'images' | 'files' | 'videos' | 'audios', true>;
+    songs: Attribute.Relation<'api::name.name', 'oneToMany', 'api::song.song'>;
+    Description: Attribute.RichText;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<'api::name.name', 'oneToOne', 'admin::user'> &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<'api::name.name', 'oneToOne', 'admin::user'> &
+      Attribute.Private;
+  };
+}
+
+export interface ApiSongSong extends Schema.CollectionType {
+  collectionName: 'songs';
+  info: {
+    singularName: 'song';
+    pluralName: 'songs';
+    displayName: 'Song';
+    description: '';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    Name: Attribute.String;
+    album: Attribute.Relation<
+      'api::song.song',
+      'manyToOne',
+      'api::album.album'
+    >;
+    Song: Attribute.Media<'images' | 'files' | 'videos' | 'audios'>;
+    TextSong: Attribute.RichText;
+    author: Attribute.Relation<
+      'api::song.song',
+      'manyToOne',
+      'api::author.author'
+    >;
+    Cover: Attribute.Media<'images' | 'files' | 'videos' | 'audios', true>;
+    genre: Attribute.Relation<'api::song.song', 'manyToOne', 'api::name.name'>;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<'api::song.song', 'oneToOne', 'admin::user'> &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<'api::song.song', 'oneToOne', 'admin::user'> &
       Attribute.Private;
   };
 }
@@ -802,10 +972,15 @@ declare module '@strapi/types' {
       'plugin::upload.folder': PluginUploadFolder;
       'plugin::content-releases.release': PluginContentReleasesRelease;
       'plugin::content-releases.release-action': PluginContentReleasesReleaseAction;
+      'plugin::i18n.locale': PluginI18NLocale;
       'plugin::users-permissions.permission': PluginUsersPermissionsPermission;
       'plugin::users-permissions.role': PluginUsersPermissionsRole;
       'plugin::users-permissions.user': PluginUsersPermissionsUser;
-      'plugin::i18n.locale': PluginI18NLocale;
+      'api::album.album': ApiAlbumAlbum;
+      'api::author.author': ApiAuthorAuthor;
+      'api::chart.chart': ApiChartChart;
+      'api::name.name': ApiNameName;
+      'api::song.song': ApiSongSong;
     }
   }
 }
