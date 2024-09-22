@@ -4,7 +4,7 @@ import { useParams } from "react-router-dom";
 import { usePlayerStore } from "../store/playerStore";
 import PlayButton from "../components/PlayerButton/PlayButton";
 import Markdown from 'markdown-to-jsx';
-import PageNotFound from "./PageNotFound"; // 
+import PageNotFound from "./404"; // 
 
 export function SongPage() {
     const params = useParams();

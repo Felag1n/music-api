@@ -20,7 +20,11 @@ interface Album {
   coverURL: string;
 }
 
-
+// interface Genre {
+//   id: number;
+//   name: string;
+//   coverURL: string;
+// }
 export default function Home() {
   const [authors, setAuthors] = useState<Author[]>([]);
   const [albums, setAlbums] = useState<Album[]>([]);
@@ -50,6 +54,18 @@ export default function Home() {
         setAlbums(_albums);
       });
   }, []);
+  
+  // axios
+  // .get('http://localhost:1337/api/genres?populate=*')
+  // .then((response) => {
+  //   const _genres = response.data.data.map((genre: any) => ({
+  //     id: genre.id,
+  //     name: genre.attributes.Name,
+  //     coverURL: 'http://localhost:1337' + genre.attributes.Cover.data.attributes.url,
+  //   }));
+  //   setGenres(_genres);
+  // });
+
 
   const shuffleArray = (array: any[]) => {
     for (let i = array.length - 1; i > 0; i--) {
@@ -120,39 +136,7 @@ export default function Home() {
       <h1 className="text-6xl font-bold mb-8">Музыка</h1>
       <h2 className="text-2xl font-semibold mb-6">Обзор</h2>
       <h3 className="text-xl font-semibold mb-4">Интересные теги</h3>
-      <div className="grid mb-8">
-        <Link href="/genre/rap" className="grid-box">
-          <Image src="" alt="Rap"/>
-        </Link>
-        <Link href="/genre/punk" className="grid-box">
-          <Image src="" alt="Punk"  />
-        </Link>
-        <Link href="/genre/rock" className="grid-box">
-          <Image src="" alt="Rock" />
-        </Link>
-        <Link href="/genre/jazz" className="grid-box">
-          <Image src="" alt="Jazz"  />
-        </Link>
-        <Link href="/genre/hiphop" className="grid-box">
-          <Image src="" alt="Hip-hop"  />
-        </Link>
-        <Link href="/genre/pop" className="grid-box">
-          <Image src="" alt="Pop"  />
-        </Link>
-        <Link href="/genre/r&b" className="grid-box">
-          <Image src="" alt="Hip-hop"  />
-        </Link>
-        <Link href="/genre/alternative" className="grid-box">
-          <Image src="" alt="Hip-hop" />
-        </Link>
-        <Link href="/genre/80's" className="grid-box">
-          <Image src="" alt="80's"  />
-        </Link>
-        <Link href="/genre/electronic" className="grid-box">
-          <Image src="" alt="electronic"   />
-        </Link>
-        
-      </div>
+      
 
       <h1 className="text-center text-purple-500">Авторы</h1>
       <div className="flex justify-center flex-wrap mb-8 gap-4">
@@ -183,7 +167,15 @@ export default function Home() {
           </div>
         ))}
       </div>
-
+{/* 
+      <div className="grid grid-cols-2 gap-4">
+        {genres.map((genre) => (
+          <Link href={`/genre/${genre.name.toLowerCase()}`} key={genre.id} className="grid-box">
+            <Image src={genre.coverURL} alt={genre.name} width={150} height={150} />
+            <p className="text-center mt-2">{genre.name}</p>
+          </Link>
+        ))}
+      </div> */}
       <h1 className="text-center text-white">Последниие релизы</h1>
       <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
         {albums.map((album) => (

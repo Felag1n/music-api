@@ -55,7 +55,7 @@ body {
   height: 100%;
   object-fit: cover;
   border-radius: 15px;
-  border: 3px solid red;
+  border: 3px solid rgb(141, 27, 116);
 }
 
 .grid-box:first-child {
@@ -81,7 +81,7 @@ body {
 .flex-box {
   aspect-ratio: 1;
   border-radius: 50vw;
-  background-color: red;
+  background-color: rgb(187, 31, 166);
   flex: 1 0 0;
   max-width: calc(100% / 6 - 20px * 3);
   min-width: calc(100% / 5 - 20px * 2);
