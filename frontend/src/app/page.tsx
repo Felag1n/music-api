@@ -88,36 +88,7 @@ export default function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-24">
   <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex">
-    <div className="fixed bottom-20 left-0 flex h-48 w-full items-end justify-center space-x-2 bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:size-auto lg:bg-none">
-      <button
-      // onClick={()=>router.back()}
-        className="
-        rounded-full
-        bg-purple-500
-        flex
-        items-center
-        justify-center
-        hover:opacity-75
-        transition
-        "
-      >
-        <RxCaretLeft className="text-white" size={35} />
-      </button>
-      <button
-      // onClick={()=>router.forward()}
-        className="
-        rounded-full
-        bg-purple-500
-        flex
-        items-center
-        justify-center
-        hover:opacity-75
-        transition
-        "
-      >
-        <RxCaretRight className="text-white" size={35} />
-      </button>
-    </div>
+    
     <div className="flex md:hidden gap-x-2 items-center">
       
     </div>
