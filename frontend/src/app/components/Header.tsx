@@ -37,21 +37,7 @@ const Header: React.FC<HeaderProps> = ({ children, onBack, onForward }) => {
           ))}
         </ul>
 
-        {/* Кнопки навигации для перехода назад и вперед */}
-        <div className="flex items-center space-x-4">
-          <button
-            // onClick={onBack}  {/* Используем пропс onBack */}
-            className="p-2 rounded-full bg-purple-500 hover:bg-purple-600 transition-all"
-          >
-            <RxCaretLeft size={24} className="text-white" />
-          </button>
-          <button
-            // onClick={onForward}  {/* Используем пропс onForward */}
-            className="p-2 rounded-full bg-purple-500 hover:bg-purple-600 transition-all"
-          >
-            <RxCaretRight size={24} className="text-white" />
-          </button>
-        </div>
+ 
       </nav>
 
       {/* Основной контент заголовка */}

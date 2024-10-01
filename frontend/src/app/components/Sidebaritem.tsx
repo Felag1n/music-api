@@ -7,20 +7,21 @@ interface SidebarItemProps {
     label: string;
     active?: boolean;
     href: string;
+    isExpanded: boolean; // Добавляем этот пропс
 }
 
 const SidebarItem: React.FC<SidebarItemProps> = ({
     icon: Icon,
     label,
     active,
-    href
+    href,
+    isExpanded // Получаем состояние панели
 }) => {
     return (
         <Link
             href={href}
             className={twMerge(`
                 flex
-                flex-row
                 items-center
                 w-full
                 gap-x-4
@@ -33,8 +34,10 @@ const SidebarItem: React.FC<SidebarItemProps> = ({
                 py-1
             `, active && "text-purple")}
         >
-            <Icon size={26} />
-            <p className="truncate w-full">{label}</p>
+          
+            <Icon size={isExpanded ? 26 : 34} /> 
+      
+            {isExpanded && <p className="truncate w-full">{label}</p>}
         </Link>
     );
 }
