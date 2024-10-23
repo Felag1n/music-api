@@ -1,6 +1,7 @@
+"use client";
 import Link from 'next/link';
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/router';
+import { useRouter, useParams } from 'next/navigation'; // Импортируем useParams для получения параметров
 import axios from 'axios';
 
 
@@ -48,9 +49,8 @@ interface SongResponseData {
 }
 
 const AlbumPage: React.FC = () => {
-  // Используем useRouter для получения параметра id
-  const router = useRouter();
-  const { id } = router.query; // Достаем id из query-параметров
+  // Используем useParams для получения параметра id
+  const { id } = useParams(); // Новый способ получения параметров маршрута
 
   const albumId = Number(id);
 

@@ -25,7 +25,7 @@ export default function RootLayout({
         <link rel='icon' href='mus.png' />
       </head>
       <body className={bonaNovaSC.className}>
-        <Header children={undefined}/>
+        <Header/>
         <Sidebar>
           {children}
         </Sidebar>

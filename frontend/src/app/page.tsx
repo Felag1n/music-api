@@ -1,10 +1,11 @@
-"use client";  
+"use client";
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import axios from 'axios';
 import Image from 'next/image';
 import Link from 'next/link';
+import { motion } from 'framer-motion'; 
 
 interface Author {
   id: number;
@@ -78,7 +79,7 @@ export default function Home() {
       <div className="relative flex place-items-center w-full justify-center my-12">
         <Image
           className="dark:invert"
-          src="/your-logo.png"  
+          src="/your-logo.png"
           alt="Your Logo"
           width={180}
           height={37}
@@ -91,13 +92,22 @@ export default function Home() {
 
       <section className="mb-12">
         <h3 className="text-xl font-semibold mb-4 text-center">Интересные авторы</h3>
-        <div className="flex justify-center flex-wrap mb-8 gap-4">
+        <motion.div
+          className="flex justify-center flex-wrap mb-8 gap-4"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 1 }}
+        >
           {authors.slice(0, 7).map((author) => (
-            <div
+            <motion.div
               className="flex flex-col items-center relative"
               key={author.id}
               onMouseEnter={() => handleMouseEnter(author.description)}
               onMouseLeave={handleMouseLeave}
+              whileHover={{ scale: 1.1 }} // Анимация при наведении
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 * author.id }}
             >
               <Image
                 className="rounded-full"
@@ -114,17 +124,28 @@ export default function Home() {
                   </div>
                 </div>
               )}
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       </section>
 
       <section>
         <h3 className="text-xl font-semibold mb-4 text-center">Последние релизы</h3>
-        <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
+        <motion.div
+          className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-5"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 1.2 }}
+        >
           {albums.map((album) => (
             <Link href={`/albums/${album.id}`} key={album.id} className="flex flex-col items-center">
-              <div className="w-40 h-40 bg-gray-200 rounded overflow-hidden shadow-lg">
+              <motion.div
+                className="w-40 h-40 bg-gray-200 rounded overflow-hidden shadow-lg"
+                whileHover={{ scale: 1.05 }} // Увеличение обложки при наведении
+                initial={{ opacity: 0, y: 50 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.2 * album.id }}
+              >
                 <Image
                   className="object-cover"
                   src={album.coverURL}
@@ -132,13 +153,14 @@ export default function Home() {
                   width={160}
                   height={160}
                 />
-              </div>
+              </motion.div>
               <p className="mt-2 text-center text-gray-700">{album.name}</p>
             </Link>
           ))}
-        </div>
+        </motion.div>
       </section>
     </main>
   );
 }
+
 
