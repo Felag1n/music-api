@@ -1,11 +1,20 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/router';
-import axios from 'axios';
-import Image from 'next/image';
-import Link from 'next/link';
-import { motion } from 'framer-motion'; 
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+import Image from "next/image";
+import Link from "next/link";
+import {
+  Box,
+  Text,
+  Heading,
+  Grid,
+  Center,
+  VStack,
+  Button,
+} from "@chakra-ui/react";
+import { motion, HTMLMotionProps } from "framer-motion";
+import Modal from "react-modal";
 
 interface Author {
   id: number;
@@ -19,148 +28,239 @@ interface Album {
   coverURL: string;
 }
 
+interface Genre {
+  id: number;
+  name: string;
+  coverURL: string;
+}
+
+type MotionBoxProps = HTMLMotionProps<"div"> & {
+  children: React.ReactNode;
+};
+
+const MotionDiv: React.FC<MotionBoxProps> = motion.div;
+
 export default function Home() {
   const [authors, setAuthors] = useState<Author[]>([]);
   const [albums, setAlbums] = useState<Album[]>([]);
+  const [genres, setGenres] = useState<Genre[]>([]);
   const [modalContent, setModalContent] = useState<string | null>(null);
-  const [modalVisible, setModalVisible] = useState<boolean>(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
-    // Запрос для авторов
-    axios
-      .get('http://localhost:1337/api/authors?populate=*&pagination[pageSize]=100000000')
-      .then((response) => {
-        const _authors = response.data.data.map((author: any) => ({
+    const fetchData = async () => {
+      try {
+        const authorsResponse = await axios.get(
+          "http://localhost:1337/api/authors?populate=*&pagination[pageSize]=100000000"
+        );
+        const _authors = authorsResponse.data.data.map((author: any) => ({
           id: author.id,
           description: author.attributes.Description,
-          image: "http://localhost:1337" + author.attributes.Image.data.attributes.url,
+          image: `http://localhost:1337${author.attributes.Image.data.attributes.url}`,
         }));
-        setAuthors(shuffleArray(_authors)); // Перемешиваем массив
-      })
-      .catch(error => console.error("Ошибка при загрузке авторов:", error));
+        setAuthors(shuffleArray(_authors));
 
-    // Запрос для альбомов
-    axios
-      .get('http://localhost:1337/api/albums?populate=*')
-      .then((response) => {
-        const _albums = response.data.data.map((album: any) => ({
+        const albumsResponse = await axios.get(
+          "http://localhost:1337/api/albums?populate=*"
+        );
+        const _albums = albumsResponse.data.data.map((album: any) => ({
           id: album.id,
           name: album.attributes.Name,
-          coverURL: 'http://localhost:1337' + album.attributes.Cover.data.attributes.url,
+          coverURL: `http://localhost:1337${album.attributes.Cover.data.attributes.url}`,
         }));
         setAlbums(_albums);
-      })
-      .catch(error => console.error("Ошибка при загрузке альбомов:", error));
+
+        const genreResponse = await axios.get(
+          "http://localhost:1337/api/genres?populate=*"
+        );
+        const _genres = genreResponse.data.data.map((genre: any) => ({
+          id: genre.id,
+          name: genre.attributes.Name,
+          coverURL: `http://localhost:1337${genre.attributes.Cover.data.attributes.url}`,
+        }));
+        console.log(_genres)
+        setGenres(_genres);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+
+    fetchData();
   }, []);
 
-  // Функция перемешивания массива
-  const shuffleArray = (array: any[]) => {
-    for (let i = array.length - 1; i > 0; i--) {
+  const shuffleArray = <T extends any[]>(array: T): T => {
+    const newArray = [...array];
+    for (let i = newArray.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
-      [array[i], array[j]] = [array[j], array[i]];
+      [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
     }
-    return array;
+    return newArray as T;
   };
 
-  // Показать модальное окно с описанием
   const handleMouseEnter = (description: string) => {
     setModalContent(description);
-    setModalVisible(true);
+    setIsModalOpen(true);
   };
 
-  // Скрыть модальное окно
-  const handleMouseLeave = () => {
-    setModalVisible(false);
+  const closeModal = () => {
+    setIsModalOpen(false);
     setModalContent(null);
   };
 
-  return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-6 lg:p-24">
-      <div className="relative flex place-items-center w-full justify-center my-12">
+  const AuthorCard: React.FC<{ author: Author }> = ({ author }) => (
+    <MotionDiv
+      whileHover={{ scale: 1.05 }}
+      style={{ cursor: "pointer" }}
+      onClick={() => handleMouseEnter(author.description)}
+    >
+      <Box
+        width="150px"
+        height="150px"
+        borderRadius="full"
+        overflow="hidden"
+        boxShadow="lg"
+        bg="gray.800"
+      >
         <Image
-          className="dark:invert"
-          src="/your-logo.png"
-          alt="Your Logo"
-          width={180}
-          height={37}
-          priority
+          src={author.image}
+          alt={author.description}
+          width={150}
+          height={150}
+          style={{ objectFit: "cover" }}
         />
-      </div>
+      </Box>
+    </MotionDiv>
+  );
 
-      <h1 className="text-6xl font-bold mb-8 text-center">Музыка</h1>
-      <h2 className="text-2xl font-semibold mb-6 text-center">Обзор</h2>
-
-      <section className="mb-12">
-        <h3 className="text-xl font-semibold mb-4 text-center">Интересные авторы</h3>
-        <motion.div
-          className="flex justify-center flex-wrap mb-8 gap-4"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 1 }}
+  const AlbumCard: React.FC<{ album: Album }> = ({ album }) => (
+    <Link href={`/albums/${album.id}`} passHref>
+      <MotionDiv whileHover={{ scale: 1.05 }}>
+        <Box
+          width="120px"
+          height="120px"
+          borderRadius="md"
+          overflow="hidden"
+          boxShadow="md"
+          bg="gray.700"
         >
+          <Image
+            src={album.coverURL}
+            alt={`Cover ${album.name}`}
+            width={120}
+            height={120}
+            style={{ objectFit: "cover" }}
+          />
+        </Box>
+        <Text mt={2} textAlign="center" fontWeight="medium" color="gray.300">
+          {album.name}
+        </Text>
+      </MotionDiv>
+    </Link>
+  );
+
+  const GenreCard: React.FC<{ genre: Genre }> = ({ genre }) => (
+    <MotionDiv whileHover={{ scale: 1.05 }} key={genre.id}>
+      <Box
+        width="150px"
+        height="150px"
+        borderRadius="md"
+        overflow="hidden"
+        boxShadow="md"
+        bg="gray.700"
+      >
+        <Image
+          src={genre.coverURL}
+          alt={`Cover ${genre.name}`}
+          width={150}
+          height={150}
+          style={{ objectFit: "cover" }}
+        />
+      </Box>
+      <Text mt={2} textAlign="center" fontWeight="medium" color="gray.300">
+        {genre.name}
+      </Text>
+    </MotionDiv>
+  );
+
+  return (
+    <Box minH="100vh" bgGradient="linear(to-b, purple.700, indigo.900)" color="white" p={6}>
+      <Center mb={12}>
+        <Image src="/your-logo.png" alt="Your Logo" width={180} height={37} priority />
+      </Center>
+
+      <VStack mb={10}>
+        <Heading as="h1" size="2xl" textAlign="center">
+          Музыка
+        </Heading>
+        <Text fontSize="xl" textAlign="center" opacity={0.8}>
+          Обзор
+        </Text>
+      </VStack>
+
+      <Box mb={12}>
+        <Heading as="h3" size="lg" textAlign="center" mb={6}>
+          Интересные авторы
+        </Heading>
+        <Grid templateColumns="repeat(auto-fit, minmax(150px, 1fr))" gap={6} justifyItems="center">
           {authors.slice(0, 7).map((author) => (
-            <motion.div
-              className="flex flex-col items-center relative"
-              key={author.id}
-              onMouseEnter={() => handleMouseEnter(author.description)}
-              onMouseLeave={handleMouseLeave}
-              whileHover={{ scale: 1.1 }} // Анимация при наведении
-              initial={{ opacity: 0, y: 50 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.1 * author.id }}
-            >
-              <Image
-                className="rounded-full"
-                src={author.image}
-                alt={author.description}
-                width={200}
-                height={200}
-              />
-              <p className="mt-2 text-center text-gray-700">{author.description}</p>
-              {modalVisible && modalContent === author.description && (
-                <div className="absolute top-0 left-0 w-full h-full bg-black bg-opacity-50 flex items-center justify-center transition-opacity">
-                  <div className="bg-white p-4 rounded shadow-md">
-                    <p className="text-black">{modalContent}</p>
-                  </div>
-                </div>
-              )}
-            </motion.div>
+            <AuthorCard key={author.id} author={author} />
           ))}
-        </motion.div>
-      </section>
+        </Grid>
+      </Box>
 
-      <section>
-        <h3 className="text-xl font-semibold mb-4 text-center">Последние релизы</h3>
-        <motion.div
-          className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-5"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 1.2 }}
-        >
+      <Box mb={12}>
+        <Heading as="h3" size="lg" textAlign="center" mb={6}>
+          Последние релизы
+        </Heading>
+        <Grid templateColumns="repeat(auto-fit, minmax(120px, 1fr))" gap={6} justifyItems="center">
           {albums.map((album) => (
-            <Link href={`/albums/${album.id}`} key={album.id} className="flex flex-col items-center">
-              <motion.div
-                className="w-40 h-40 bg-gray-200 rounded overflow-hidden shadow-lg"
-                whileHover={{ scale: 1.05 }} // Увеличение обложки при наведении
-                initial={{ opacity: 0, y: 50 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.2 * album.id }}
-              >
-                <Image
-                  className="object-cover"
-                  src={album.coverURL}
-                  alt={`Обложка ${album.name}`}
-                  width={160}
-                  height={160}
-                />
-              </motion.div>
-              <p className="mt-2 text-center text-gray-700">{album.name}</p>
-            </Link>
+            <AlbumCard key={album.id} album={album} />
           ))}
-        </motion.div>
-      </section>
-    </main>
+        </Grid>
+      </Box>
+
+      <Box>
+        <Heading as="h3" size="lg" textAlign="center" mb={6}>
+          Жанры
+        </Heading>
+        <Grid templateColumns="repeat(auto-fit, minmax(150px, 1fr))" gap={6} justifyItems="center">
+          {genres.map((genre) => (
+            <GenreCard key={genre.id} genre={genre} />
+          ))}
+        </Grid>
+      </Box>
+
+      <Modal
+        isOpen={isModalOpen}
+        onRequestClose={closeModal}
+        style={{
+          content: {
+            top: "50%",
+            left: "50%",
+            right: "auto",
+            bottom: "auto",
+            marginRight: "-50%",
+            transform: "translate(-50%, -50%)",
+            padding: "20px",
+            borderRadius: "8px",
+            backgroundColor: "#2D3748",
+            color: "white",
+            width: "80%",
+            maxWidth: "500px",
+          },
+          overlay: { backgroundColor: "rgba(0, 0, 0, 0.75)" },
+        }}
+      >
+        <Box>
+          <Heading size="md" mb={4}>
+            Описание Автора
+          </Heading>
+          <Text>{modalContent}</Text>
+          <Button mt={4} onClick={closeModal}>
+            Закрыть
+          </Button>
+        </Box>
+      </Modal>
+    </Box>
   );
 }
-
-

@@ -1,9 +1,21 @@
 "use client";
-import Link from 'next/link';
-import React, { useState, useEffect } from 'react';
-import { useRouter, useParams } from 'next/navigation'; // Импортируем useParams для получения параметров
-import axios from 'axios';
 
+import React, { useState, useEffect } from "react";
+import { useParams } from "next/navigation";
+import axios from "axios";
+import {
+  Box,
+  Center,
+  Flex,
+  Heading,
+  Image,
+  SimpleGrid,
+  Text,
+  LinkBox,
+  LinkOverlay,
+  Stack,
+  Badge,
+} from "@chakra-ui/react";
 
 interface Song {
   id: number;
@@ -15,6 +27,7 @@ interface Song {
 interface Album {
   id: number;
   name: string;
+  coverUrl: string;
 }
 
 interface AlbumResponseData {
@@ -49,9 +62,7 @@ interface SongResponseData {
 }
 
 const AlbumPage: React.FC = () => {
-  // Используем useParams для получения параметра id
-  const { id } = useParams(); // Новый способ получения параметров маршрута
-
+  const { id } = useParams();
   const albumId = Number(id);
 
   const [songs, setSongs] = useState<Song[]>([]);
@@ -60,11 +71,10 @@ const AlbumPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!albumId) return; // Если id еще не загружен, ничего не делаем
+    if (!albumId) return;
 
     const fetchData = async () => {
       try {
-        // Запрашиваем данные об альбоме и песнях
         const albumResponse = await axios.get<AlbumResponseData>(
           `http://localhost:1337/api/albums/${albumId}?populate=*`
         );
@@ -73,16 +83,15 @@ const AlbumPage: React.FC = () => {
         setAlbum({
           id: albumResponse.data.data.id,
           name: albumData.Name,
+          coverUrl: `http://localhost:1337${albumData.Cover.data.attributes.url}`,
         });
 
-        // Запрашиваем данные для каждой песни
         const songPromises = albumData.songs.data.map(async (rawSong) => {
           const songResponse = await axios.get<SongResponseData>(
             `http://localhost:1337/api/songs/${rawSong.id}?populate=*`
           );
           const song = songResponse.data.data;
           const songAttributes = song.attributes;
-
           return {
             id: song.id,
             name: songAttributes.Name,
@@ -91,12 +100,11 @@ const AlbumPage: React.FC = () => {
           };
         });
 
-        // Ожидаем завершения всех запросов
         const resolvedSongs = await Promise.all(songPromises);
         setSongs(resolvedSongs);
       } catch (error) {
-        console.error('Error fetching data:', error);
-        setError('Ошибка загрузки данных альбома');
+        console.error("Error fetching data:", error);
+        setError("Ошибка загрузки данных альбома");
       } finally {
         setIsLoading(false);
       }
@@ -105,50 +113,93 @@ const AlbumPage: React.FC = () => {
     fetchData();
   }, [albumId]);
 
-  const setSongAtStore = (songUrl: string) => {
-    // Здесь вы можете добавить код для воспроизведения песни через zustand или другой стор
-    console.log('Playing song:', songUrl);
-  };
-
-  // Рендеринг: отображение загрузки, ошибки или контента
   return (
-    <div className="p-4">
+    <Box p={8} minH="100vh" bgGradient="linear(to-br, teal.900, blue.800)">
       {isLoading ? (
-        <div className="text-center text-white">Загрузка...</div>
+        <Center h="100vh">
+          <Text color="white" fontSize="lg" fontWeight="semibold">
+            Загрузка...
+          </Text>
+        </Center>
       ) : error ? (
-        <div className="text-center text-red-500">{error}</div>
+        <Center h="100vh">
+          <Text color="red.500" fontSize="lg" fontWeight="semibold">
+            {error}
+          </Text>
+        </Center>
       ) : album !== null ? (
-        <div>
-          <h1 className="text-4xl font-bold text-purple-800 mb-6">{album.name}</h1>
-          <div className="flex flex-wrap gap-4">
+        <Box>
+          <Flex direction="column" align="center" mb={16}>
+            <Image
+              src={album.coverUrl}
+              alt={album.name}
+              borderRadius="2xl"
+              boxShadow="dark-lg"
+              w={{ base: 64, md: 80 }}
+              h={{ base: 64, md: 80 }}
+              objectFit="cover"
+            />
+            <Heading as="h1" size="3xl" color="white" mt={8} textAlign="center">
+              {album.name}
+            </Heading>
+            <Text color="white" fontSize="lg" mt={4}>
+              В альбоме: {songs.length}
+            </Text>
+          </Flex>
+
+          <SimpleGrid
+            columns={{ base: 1, sm: 2, lg: 4 }}
+            gap={12} // Увеличение отступов между карточками
+          >
             {songs.map((song) => (
-              <div key={song.id} className="w-40">
-                <div className="relative">
-                  <img
-                    className="w-full h-40 object-cover rounded-lg shadow-md"
-                    src={song.coverUrl}
-                    alt={song.name}
-                  />
-                  <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 opacity-0 hover:opacity-100 transition-opacity">
-                    <button
-                      onClick={() => setSongAtStore(song.songUrl)}
-                      className="text-white bg-purple-700 hover:bg-purple-800 px-3 py-1 rounded"
+              <LinkBox
+                as="article"
+                key={song.id}
+                bgGradient="linear(to-b, gray.700, gray.900)"
+                borderRadius="xl"
+                overflow="hidden"
+                boxShadow="lg"
+                transition="transform 0.5s, box-shadow 0.5s"
+                _hover={{ transform: "scale(1.08)", boxShadow: "2xl" }}
+              >
+                <Image
+                  src={song.coverUrl}
+                  alt={song.name}
+                  w="full"
+                  h={{ base: 60, md: 72 }}
+                  objectFit="cover"
+                  borderTopRadius="xl"
+                />
+                <Box p={6} position="relative">
+                  <Stack align="center" >
+                    <Badge colorScheme="purple" px={4} py={1} borderRadius="md">
+                      Слушать
+                    </Badge>
+                    <LinkOverlay
+                      href={`/songs/${song.id}`}
+                      fontSize="lg"
+                      fontWeight="semibold"
+                      color="white"
+                     
+                      textAlign="center"
                     >
-                      Play
-                    </button>
-                  </div>
-                </div>
-                <div className="mt-2 text-center text-white">{song.name}</div>
-              </div>
+                      {song.name}
+                    </LinkOverlay>
+                  </Stack>
+                </Box>
+              </LinkBox>
             ))}
-          </div>
-        </div>
+          </SimpleGrid>
+        </Box>
       ) : (
-        <div className="text-center text-white">Альбом не найден</div>
+        <Center>
+          <Text color="white" fontSize="xl">
+            Альбом не найден
+          </Text>
+        </Center>
       )}
-    </div>
+    </Box>
   );
 };
 
 export default AlbumPage;
-

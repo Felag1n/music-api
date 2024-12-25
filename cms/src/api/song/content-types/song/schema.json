@@ -50,12 +50,6 @@
       ],
       "type": "media",
       "multiple": true
-    },
-    "genre": {
-      "type": "relation",
-      "relation": "manyToOne",
-      "target": "api::name.name",
-      "inversedBy": "songs"
     }
   }
 }

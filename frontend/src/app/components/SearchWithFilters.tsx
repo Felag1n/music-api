@@ -1,186 +1,176 @@
+"use client";
+
 import { useState, useRef, useEffect } from "react";
+import axios from "axios";
+import { Box, Input, Button, VStack, HStack, Text, Heading, Image} from "@chakra-ui/react";
+import { Tag } from "@/components/ui/tag";
+import { List, ListItem } from "@chakra-ui/react";
 
 interface SearchWithFiltersProps {
-  setIsSearchOpen: (isOpen: boolean) => void; // Пропс для закрытия модального окна
+  setIsSearchOpen: (isOpen: boolean) => void;
+  setFilteredSongs: (songs: Song[]) => void;
 }
 
-const SearchWithFilters: React.FC<SearchWithFiltersProps> = ({ setIsSearchOpen }) => {
+interface Song {
+  id: number;
+  songUrl: string;
+  name: string;
+  textSong: string | null;
+  cover: string;
+}
+
+const SearchWithFilters: React.FC<SearchWithFiltersProps> = ({ setIsSearchOpen, setFilteredSongs }) => {
   const modalRef = useRef<HTMLDivElement | null>(null);
 
-  // Список фильтров для примера
   const genres = ["Rock", "Pop", "Hip-Hop", "Jazz", "Classical"];
-  const languages = ["English", "Russian", "Spanish", "French", "German"];
-  const moods = ["Happy", "Sad", "Energetic", "Calm"];
-
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
-  const [selectedLanguages, setSelectedLanguages] = useState<string[]>([]);
-  const [selectedMood, setSelectedMood] = useState<string>("");
-  const [yearRange, setYearRange] = useState<{ min: number; max: number }>({
-    min: 1990,
-    max: 2024,
-  });
+  const [searchText, setSearchText] = useState<string>("");
+  const [suggestions, setSuggestions] = useState<Song[]>([]);
 
   const toggleGenre = (genre: string) => {
-    setSelectedGenres((prevGenres) =>
-      prevGenres.includes(genre)
-        ? prevGenres.filter((g) => g !== genre)
-        : [...prevGenres, genre]
+    setSelectedGenres((prev) =>
+      prev.includes(genre) ? prev.filter((g) => g !== genre) : [...prev, genre]
     );
   };
 
-  const toggleLanguage = (language: string) => {
-    setSelectedLanguages((prevLanguages) =>
-      prevLanguages.includes(language)
-        ? prevLanguages.filter((l) => l !== language)
-        : [...prevLanguages, language]
-    );
+  const fetchSuggestions = async (query: string) => {
+    if (query.length === 0) {
+      setSuggestions([]);
+      return;
+    }
+
+    try {
+      const response = await axios.get("http://localhost:1337/api/songs", {
+        params: { search: query },
+      });
+
+      const suggestionData = response.data.data.map((data: any) => ({
+        id: data.id,
+        songUrl: `http://localhost:1337${data.attributes.Song.data.attributes.url}`,
+        name: data.attributes.Name,
+        textSong: data.attributes.TextSong || null,
+        cover: `http://localhost:1337${data.attributes.Cover.data[0].attributes.url}`,
+      }));
+
+      setSuggestions(suggestionData);
+    } catch (error) {
+      console.error("Ошибка при получении предложений:", error);
+    }
   };
 
-  const handleSearch = () => {
-    const filters = {
-      genres: selectedGenres,
-      languages: selectedLanguages,
-      mood: selectedMood,
-      yearRange,
-    };
-    // Здесь ты можешь отправить данные на сервер или в другой компонент
-    console.log("Ищем с фильтрами: ", filters);
+  const handleSearch = async () => {
+    try {
+      const response = await axios.get("http://localhost:1337/api/songs", {
+        params: {
+          genres: selectedGenres.join(","),
+          search: searchText,
+        },
+      });
+
+      const filteredSongs = response.data.data.map((data: any) => ({
+        id: data.id,
+        songUrl: `http://localhost:1337${data.attributes.Song.data.attributes.url}`,
+        name: data.attributes.Name,
+        textSong: data.attributes.TextSong || null,
+        cover: `http://localhost:1337${data.attributes.Cover.data[0].attributes.url}`,
+      }));
+
+      setFilteredSongs(filteredSongs);
+      setIsSearchOpen(false);
+    } catch (error) {
+      console.error("Ошибка при фильтрации:", error);
+    }
   };
 
   const handleReset = () => {
     setSelectedGenres([]);
-    setSelectedLanguages([]);
-    setSelectedMood("");
-    setYearRange({ min: 1990, max: 2024 });
+    setSearchText("");
+    setSuggestions([]);
+    setFilteredSongs([]);
   };
 
-  // Закрытие модального окна при клике вне его
-  const handleClickOutside = (event: MouseEvent) => {
-    if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
-      setIsSearchOpen(false); // Закрываем модальное окно при клике вне его области
-    }
-  };
-
-  // Добавляем обработчик кликов при открытии модального окна
   useEffect(() => {
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
+    const handleClickOutside = (event: MouseEvent) => {
+      if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
+        setIsSearchOpen(false);
+      }
     };
-  }, []);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [setIsSearchOpen]);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      {/* Размытие фона */}
-      <div className="fixed inset-0 bg-gray-900 bg-opacity-90 backdrop-blur-sm"></div>
-
-      {/* Модальное окно */}
-      <div
-        ref={modalRef}
-        className="relative bg-gray-800 text-white rounded-md p-6 z-10 max-w-lg w-full"
-      >
-        <h2 className="text-2xl mb-6 text-center">Фильтр поиска песен</h2>
-
-        {/* Ввод для поиска */}
-        <input
-          type="text"
-          placeholder="Введите название или начните с @"
-          className="w-full mb-4 p-2 bg-gray-700 text-white rounded-md"
+    <Box position="fixed" top="0" left="0" right="0" bottom="0" bg="blackAlpha.600" display="flex" alignItems="center" justifyContent="center" zIndex="overlay">
+      <Box ref={modalRef} bg="gray.800" color="white" p={6} rounded="md" boxShadow="lg" maxW="lg" w="full">
+        <Heading as="h2" size="lg" mb={4} textAlign="center">
+          Фильтр поиска песен
+        </Heading>
+        <Input
+          placeholder="Введите название трека"
+          mb={4}
+          bg="gray.700"
+          value={searchText}
+          onChange={(e) => {
+            setSearchText(e.target.value);
+            fetchSuggestions(e.target.value);
+          }}
         />
-
-        {/* Фильтры */}
-        <div className="mb-6">
-          <h3 className="text-lg mb-2">Жанры</h3>
-          <div className="flex flex-wrap gap-2">
-            {genres.map((genre) => (
-              <label key={genre} className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={selectedGenres.includes(genre)}
-                  onChange={() => toggleGenre(genre)}
-                  className="form-checkbox h-5 w-5 text-purple-600"
-                />
-                <span>{genre}</span>
-              </label>
-            ))}
-          </div>
-        </div>
-
-        <div className="mb-6">
-          <h3 className="text-lg mb-2">Язык исполнения</h3>
-          <div className="flex flex-wrap gap-2">
-            {languages.map((language) => (
-              <label key={language} className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={selectedLanguages.includes(language)}
-                  onChange={() => toggleLanguage(language)}
-                  className="form-checkbox h-5 w-5 text-purple-600"
-                />
-                <span>{language}</span>
-              </label>
-            ))}
-          </div>
-        </div>
-
-        <div className="mb-6">
-          <h3 className="text-lg mb-2">Настроение</h3>
-          <select
-            value={selectedMood}
-            onChange={(e) => setSelectedMood(e.target.value)}
-            className="w-full p-2 bg-gray-700 text-white rounded-md"
+        {suggestions.length > 0 && (
+          <List
+            spacing={3}
+            bg="gray.700"
+            rounded="md"
+            mb={4}
+            maxH="150px"
+            overflowY="auto"
+            listStyleType="none"
           >
-            <option value="">Выберите настроение</option>
-            {moods.map((mood) => (
-              <option key={mood} value={mood}>
-                {mood}
-              </option>
+            {suggestions.map((song) => (
+              <ListItem
+                key={song.id}
+                p={2}
+                cursor="pointer"
+                onClick={() => {
+                  setSearchText(song.name);
+                  setSuggestions([]);
+                }}
+                _hover={{ bg: "gray.600" }}
+                _marker={{ color: "purple.500" }}
+              >
+                <HStack>
+                  <Image src={song.cover} alt={song.name} boxSize="30px" mr={2} />
+                  <Text>{song.name}</Text>
+                </HStack>
+              </ListItem>
             ))}
-          </select>
-        </div>
-
-        <div className="mb-6">
-          <h3 className="text-lg mb-2">Год выпуска</h3>
-          <div className="flex gap-2">
-            <input
-              type="number"
-              className="w-full p-2 bg-gray-700 text-white rounded-md"
-              value={yearRange.min}
-              onChange={(e) =>
-                setYearRange({ ...yearRange, min: parseInt(e.target.value) || 1990 })
-              }
-              placeholder="От"
-            />
-            <input
-              type="number"
-              className="w-full p-2 bg-gray-700 text-white rounded-md"
-              value={yearRange.max}
-              onChange={(e) =>
-                setYearRange({ ...yearRange, max: parseInt(e.target.value) || 2024 })
-              }
-              placeholder="До"
-            />
-          </div>
-        </div>
-
-        {/* Кнопки */}
-        <div className="flex justify-between">
-          <button
-            onClick={handleSearch}
-            className="bg-purple-600 p-3 rounded-md hover:bg-purple-800"
-          >
-            Найти
-          </button>
-          <button
-            onClick={handleReset}
-            className="bg-red-500 p-3 rounded-md hover:bg-red-700"
-          >
-            Сбросить фильтры
-          </button>
-        </div>
-      </div>
-    </div>
+          </List>
+        )}
+        <VStack align="stretch" mb={6}>
+          <Box>
+            <Text fontSize="lg" mb={2}>Жанры</Text>
+            <HStack wrap="wrap">
+              {genres.map((genre) => (
+                <Tag
+                  key={genre}
+                  bg={selectedGenres.includes(genre) ? "purple.500" : "gray.700"}
+                  onClick={() => toggleGenre(genre)}
+                  cursor="pointer"
+                >
+                  {genre}
+                </Tag>
+              ))}
+            </HStack>
+          </Box>
+        </VStack>
+        <HStack justify="space-between">
+          <Button onClick={handleReset} colorScheme="red">Сбросить</Button>
+          <Button onClick={handleSearch} colorScheme="blue">Искать</Button>
+        </HStack>
+      </Box>
+    </Box>
   );
 };
 
 export default SearchWithFilters;
+
+

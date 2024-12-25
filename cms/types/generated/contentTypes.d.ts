@@ -895,32 +895,6 @@ export interface ApiChartChart extends Schema.SingleType {
   };
 }
 
-export interface ApiNameName extends Schema.CollectionType {
-  collectionName: 'names';
-  info: {
-    singularName: 'name';
-    pluralName: 'names';
-    displayName: 'Genre';
-    description: '';
-  };
-  options: {
-    draftAndPublish: true;
-  };
-  attributes: {
-    Name: Attribute.String;
-    Cover: Attribute.Media<'images' | 'files' | 'videos' | 'audios', true>;
-    songs: Attribute.Relation<'api::name.name', 'oneToMany', 'api::song.song'>;
-    Description: Attribute.RichText;
-    createdAt: Attribute.DateTime;
-    updatedAt: Attribute.DateTime;
-    publishedAt: Attribute.DateTime;
-    createdBy: Attribute.Relation<'api::name.name', 'oneToOne', 'admin::user'> &
-      Attribute.Private;
-    updatedBy: Attribute.Relation<'api::name.name', 'oneToOne', 'admin::user'> &
-      Attribute.Private;
-  };
-}
-
 export interface ApiSongSong extends Schema.CollectionType {
   collectionName: 'songs';
   info: {
@@ -947,7 +921,6 @@ export interface ApiSongSong extends Schema.CollectionType {
       'api::author.author'
     >;
     Cover: Attribute.Media<'images' | 'files' | 'videos' | 'audios', true>;
-    genre: Attribute.Relation<'api::song.song', 'manyToOne', 'api::name.name'>;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;
@@ -979,7 +952,6 @@ declare module '@strapi/types' {
       'api::album.album': ApiAlbumAlbum;
       'api::author.author': ApiAuthorAuthor;
       'api::chart.chart': ApiChartChart;
-      'api::name.name': ApiNameName;
       'api::song.song': ApiSongSong;
     }
   }

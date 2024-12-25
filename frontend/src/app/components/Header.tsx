@@ -1,43 +1,36 @@
 "use client";
-
-import React from 'react';
-import Image from 'next/image';
-import Link from 'next/link';
-import { BiUser } from 'react-icons/bi';
-import { IoMdNotificationsOutline } from 'react-icons/io';
+import React from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { BiUser } from "react-icons/bi";
+import { useUser } from "./UserContext";
 
 const Header: React.FC = () => {
+  const { avatar } = useUser();
+
   return (
-    <header className="relative bg-gray-900 text-white shadow-lg py-4 px-6">
+    <header className="bg-gradient-to-r from-purple-800 via-purple-600 to-purple-400 text-white shadow-md py-4 px-8">
       <nav className="flex justify-between items-center">
-        {/* Логотип и навигация */}
-        <Link href="/" className="text-2xl font-bold text-purple-400 hover:text-purple-500 transition-colors">
-          MusicApp
+        {/* Logo */}
+        <Link href="/" className="text-3xl font-extrabold tracking-wide text-white hover:text-gray-200 transition-colors">
+           MusicApp
         </Link>
 
-        <ul className="hidden md:flex items-center space-x-8">
-          {/* Здесь можно добавить дополнительные пункты меню */}
-        </ul>
-
-        {/* Управление пользователем */}
-        <div className="flex items-center gap-4">
-          <button className="relative">
-            <IoMdNotificationsOutline size={28} className="hover:text-purple-400 transition" />
-            <span className="absolute top-0 right-0 block h-2 w-2 bg-red-500 rounded-full"></span>
-          </button>
-          <Link href="/Profile" className="flex items-center gap-2 hover:text-purple-400 transition">
-            <BiUser size={28} />
-            <span className="hidden md:block">Profile</span>
-          </Link>
-          <Link href="/Profile">
-            <Image
-              src="/profile-pic.jpg" // Замените на изображение пользователя
-              alt="User Profile"
-              width={40}
-              height={40}
-              className="rounded-full"
-            />
-          </Link>
+        {/* Navigation and User Section */}
+        <div className="flex items-center gap-8">
+         
+          {/* Avatar (conditionally rendered) */}
+          {avatar && (
+            <Link href="/Profile">
+              <Image
+                src={avatar}
+                alt="ㅤ"
+                width={44}
+                height={44}
+                className="rounded-full border-2 border-white shadow-md hover:shadow-lg transition-shadow"
+              />
+            </Link>
+          )}
         </div>
       </nav>
     </header>
@@ -45,6 +38,7 @@ const Header: React.FC = () => {
 };
 
 export default Header;
+
 
 
 

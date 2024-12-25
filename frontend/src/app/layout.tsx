@@ -3,6 +3,8 @@ import { Bona_Nova } from "next/font/google";
 import "./globals.css";
 import Header from './components/Header';
 import Sidebar from "./components/Sidebar";
+import { Provider } from "@/components/ui/provider";
+import { UserProvider } from "./components/UserContext";
 
 const bonaNovaSC = Bona_Nova({
   weight: '400',
@@ -20,15 +22,20 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html suppressHydrationWarning lang="en">
       <head>
-        <link rel='icon' href='mus.png' />
+        <link rel="icon" href="mus.png" />
       </head>
       <body className={bonaNovaSC.className}>
-        <Header/>
-        <Sidebar>
-          {children}
-        </Sidebar>
+        {/* Оборачиваем в UserProvider */}
+        <UserProvider>
+          <Header />
+          <Provider>
+            <Sidebar>
+              {children}
+            </Sidebar>
+          </Provider>
+        </UserProvider>
       </body>
     </html>
   );

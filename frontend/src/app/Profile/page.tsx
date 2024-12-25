@@ -1,170 +1,158 @@
 "use client";
 
-import React, { useState } from "react";
-import Image from "next/image";
+import React, { useState, useEffect } from "react";
+import {
+  Box,
+  VStack,
+  Button,
+  Text,
+  Image as ChakraImage,
+  Input,
+  HStack,
+  Heading,
+  Flex,
+  SimpleGrid,
+} from "@chakra-ui/react";
+import { Tag } from "@/components/ui/tag";
+import { useUser } from "../components/UserContext";
+import { FaPlay } from "react-icons/fa";
 
 const UserProfilePage: React.FC = () => {
-  const [avatar, setAvatar] = useState<string | null>("/user-avatar.png");
-  const [username, setUsername] = useState<string>("@johndoe");
-  const [isEditingUsername, setIsEditingUsername] = useState<boolean>(false);
+  const { user, avatar, setAvatar, fetchUserData } = useUser();
+  const [username, setUsername] = useState<string>("");
+  const [favoriteGenres, setFavoriteGenres] = useState<string[]>([]);
+  const [recentTracks, setRecentTracks] = useState<string[]>([]);
 
-  const [tags, setTags] = useState<string[]>(["Music"]);
-  const [newTag, setNewTag] = useState<string>("");
+  useEffect(() => {
+    const loadUserData = async () => {
+      try {
+        const userData = await fetchUserData();
+        if (userData) {
+          setUsername(userData.username || "");
+          setFavoriteGenres(userData.favoriteGenres || []);
+          setRecentTracks(userData.recentTracks || []);
+        }
+      } catch (error) {
+        console.error("Failed to fetch user data:", error);
+      }
+    };
 
-  const user = {
-    name: "John Doe",
-    bio: "Music lover. Dreamer. Avid playlist curator.",
-    playlists: [
-      { name: "My Top Hits", tracks: 25 },
-      { name: "Relaxing Beats", tracks: 15 },
-    ],
-  };
+    loadUserData();
+  }, [fetchUserData]);
 
   const handleAvatarChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      setAvatar(URL.createObjectURL(file));
+      const newAvatar = URL.createObjectURL(file);
+      setAvatar(newAvatar);
     }
   };
 
-  const handleUsernameSave = () => {
-    setIsEditingUsername(false);
-  };
-
-  const handleAddTag = () => {
-    if (newTag && !tags.includes(newTag)) {
-      setTags([...tags, newTag]);
-      setNewTag("");
-    }
-  };
-
-  const handleRemoveTag = (tag: string) => {
-    setTags(tags.filter((t) => t !== tag));
+  const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setUsername(e.target.value);
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white py-8 px-4">
-      <div className="max-w-3xl mx-auto bg-gray-800 p-6 rounded-lg shadow-lg">
-        <div className="flex flex-col items-center">
-          <div className="relative">
-            <Image
-              className="rounded-full"
-              src={avatar}
-              alt={user.name}
-              width={120}
-              height={120}
+    <VStack
+      bg="linear-gradient(180deg, #1E1E2E 0%, #151521 100%)"
+      color="white"
+      minH="100vh"
+      py={8}
+      px={6}
+      alignItems="center"
+    >
+      <Box
+        bg="gray.800"
+        p={10}
+        rounded="xl"
+        shadow="dark-lg"
+        maxW="lg"
+        w="full"
+      >
+        {/* Header */}
+        <Flex justify="space-between" align="center" mb={8}>
+          <Heading size="lg" color="teal.400">Your Profile</Heading>
+          <Button colorScheme="teal" variant="solid" size="md" leftIcon={<FaPlay />}>Play All</Button>
+        </Flex>
+
+        {/* Avatar Section */}
+        <VStack align="center">
+          <Box position="relative" boxSize="140px">
+            <ChakraImage
+              src={avatar || "/default-avatar.png"}
+              alt="User Avatar"
+              boxSize="full"
+              borderRadius="full"
+              shadow="lg"
+              border="4px solid teal"
             />
-            <input
+            <Input
               type="file"
               accept="image/*"
               onChange={handleAvatarChange}
-              className="absolute inset-0 opacity-0 cursor-pointer"
-              title="Choose a new avatar"
+              position="absolute"
+              inset={0}
+              opacity={0}
+              cursor="pointer"
+              title="Change your avatar"
             />
-          </div>
-          <h1 className="text-3xl font-bold mt-4">{user.name}</h1>
+          </Box>
+          <Input
+            value={username}
+            onChange={handleUsernameChange}
+            variant="filled"
+            placeholder="Enter your username"
+            fontSize="xl"
+            fontWeight="bold"
+            textAlign="center"
+            colorScheme="teal"
+            bg="gray.700"
+            focusBorderColor="teal.400"
+          />
+        </VStack>
 
-          {/* Никнейм с возможностью редактирования */}
-          {isEditingUsername ? (
-            <div className="flex items-center space-x-2 mt-2">
-              <input
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className="bg-gray-700 text-white rounded-lg p-1 focus:outline-none focus:ring-2 focus:ring-purple-400"
-              />
-              <button
-                onClick={handleUsernameSave}
-                className="text-purple-400 hover:text-purple-300 transition"
-              >
-                Save
-              </button>
-            </div>
-          ) : (
-            <div className="flex items-center space-x-2 mt-2">
-              <p className="text-purple-400">{username}</p>
-              <button
-                onClick={() => setIsEditingUsername(true)}
-                className="text-gray-400 hover:text-gray-300 transition"
-              >
-                Edit
-              </button>
-            </div>
-          )}
+        {/* Favorite Genres Section */}
+        <Box w="full" mt={8}>
+          <Heading size="md" mb={4} color="teal.300">Favorite Genres</Heading>
+          <SimpleGrid columns={[2, 3]} >
+            {favoriteGenres.length > 0 ? (
+              favoriteGenres.map((genre) => (
+                <Tag key={genre} colorScheme="cyan" size="lg" textAlign="center">{genre}</Tag>
+              ))
+            ) : (
+              <Text fontSize="sm" color="gray.400">No favorite genres added yet.</Text>
+            )}
+          </SimpleGrid>
+        </Box>
 
-          <p className="text-gray-400 text-center mt-2">{user.bio}</p>
-
-          {/* Секция тегов */}
-          <div className="mt-4 w-full text-center">
-            <h2 className="text-xl font-semibold text-purple-400 mb-2">Tags</h2>
-            <div className="flex flex-wrap justify-center gap-2">
-              {tags.map((tag, index) => (
-                <span
+        {/* Recently Played Section */}
+        <Box w="full" mt={8}>
+          <Heading size="md" mb={4} color="teal.300">Recently Played</Heading>
+          <VStack align="stretch">
+            {recentTracks.length > 0 ? (
+              recentTracks.map((track, index) => (
+                <Box
                   key={index}
-                  className="bg-purple-600 text-white px-3 py-1 rounded-full flex items-center gap-1"
+                  bg="gray.700"
+                  p={4}
+                  rounded="md"
+                  shadow="md"
+                  _hover={{ bg: "teal.600" }}
                 >
-                  {tag}
-                  <button
-                    onClick={() => handleRemoveTag(tag)}
-                    className="text-red-400 hover:text-red-300 ml-2"
-                  >
-                    ×
-                  </button>
-                </span>
-              ))}
-            </div>
-
-            {/* Добавление нового тега */}
-            <div className="flex items-center justify-center mt-4">
-              <input
-                type="text"
-                value={newTag}
-                onChange={(e) => setNewTag(e.target.value)}
-                placeholder="Add a tag"
-                className="bg-gray-700 text-white p-2 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-purple-400"
-              />
-              <button
-                onClick={handleAddTag}
-                className="bg-purple-500 text-white px-4 py-2 rounded-r-lg hover:bg-purple-400 transition"
-              >
-                Add
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Плейлисты пользователя */}
-        <div className="mt-8">
-          <h2 className="text-2xl font-bold mb-4">Playlists</h2>
-          {user.playlists.length === 0 ? (
-            <p className="text-gray-400">No playlists yet.</p>
-          ) : (
-            <ul className="space-y-4">
-              {user.playlists.map((playlist, index) => (
-                <li
-                  key={index}
-                  className="flex justify-between items-center bg-gray-700 p-4 rounded-lg hover:bg-gray-600 transition"
-                >
-                  <div>
-                    <p className="text-lg">{playlist.name}</p>
-                    <p className="text-gray-400">{playlist.tracks} tracks</p>
-                  </div>
-                  <button className="text-purple-400 hover:text-purple-300">
-                    View
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      </div>
-    </div>
+                  <Text fontSize="lg" color="white">{track}</Text>
+                </Box>
+              ))
+            ) : (
+              <Text fontSize="sm" color="gray.400">No recently played tracks available.</Text>
+            )}
+          </VStack>
+        </Box>
+      </Box>
+    </VStack>
   );
 };
 
 export default UserProfilePage;
-
-
 
 
 

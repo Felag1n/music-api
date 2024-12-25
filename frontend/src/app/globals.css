@@ -133,3 +133,21 @@ h1 {
   font-weight: bold;
   color: #007BFF;
 }
+@keyframes gradientAnimation {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.animate-gradient {
+  background: linear-gradient(-45deg, #6b46c1, #9f7aea, #d6bcfa, #6b46c1);
+  background-size: 400% 400%;
+  animation: gradientAnimation 15s ease infinite;
+}
+
